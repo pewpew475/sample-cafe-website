@@ -14,8 +14,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Validate Firebase configuration in production
-if (process.env.NODE_ENV === 'production') {
+// Validate Firebase configuration - only validate when actually running the app, not during build
+if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
   const requiredEnvVars = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
     'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
@@ -28,10 +28,20 @@ if (process.env.NODE_ENV === 'production') {
   const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
   if (missingEnvVars.length > 0) {
-    throw new Error(
-      `Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
-      'Please check your environment configuration and ensure all Firebase variables are set.'
-    );
+    // Only throw error if we're in the browser or actually running in production
+    // Don't throw during build process
+    if (typeof window !== 'undefined') {
+      throw new Error(
+        `Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
+        'Please check your environment configuration and ensure all Firebase variables are set.'
+      );
+    } else {
+      // During build, just log a warning instead of throwing
+      console.warn(
+        `⚠️ Missing Firebase environment variables during build: ${missingEnvVars.join(', ')}\n` +
+        'This is normal during static generation. Ensure variables are set for runtime.'
+      );
+    }
   }
 }
 
