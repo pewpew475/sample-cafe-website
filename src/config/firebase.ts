@@ -32,42 +32,71 @@ if (shouldValidate) {
   const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
   if (missingEnvVars.length > 0) {
-    throw new Error(
-      `Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
-      'Please check your environment configuration and ensure all Firebase variables are set.'
+    console.error(
+      `❌ Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
+      'Please check your Vercel environment variables configuration.\n' +
+      'Visit: https://vercel.com/dashboard → Your Project → Settings → Environment Variables'
     );
+
+    // Show user-friendly error instead of crashing the app
+    if (typeof window !== 'undefined') {
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.9); color: white; padding: 20px;
+        font-family: monospace; z-index: 9999; overflow: auto;
+      `;
+      errorDiv.innerHTML = `
+        <h2>🔧 Configuration Error</h2>
+        <p>Missing Firebase environment variables in production:</p>
+        <ul>${missingEnvVars.map(v => `<li>${v}</li>`).join('')}</ul>
+        <p>Please set these variables in your Vercel dashboard:</p>
+        <p><strong>Vercel Dashboard → Project Settings → Environment Variables</strong></p>
+        <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px;">Close</button>
+      `;
+      document.body.appendChild(errorDiv);
+    }
+
+    // Don't throw error, just return early to prevent app crash
+    return;
   }
 } else if (isBuilding) {
   // During build, just log info about environment status
   console.log('🔧 Firebase config loaded for build process');
 }
 
-// Initialize Firebase - handle missing config gracefully during build
+// Initialize Firebase - handle missing config gracefully
 let app: any = null;
 let db: any = null;
 let auth: any = null;
 let storage: any = null;
 
 try {
-  // Only initialize if we have a valid config or we're in the browser
-  const hasValidConfig = firebaseConfig.apiKey && firebaseConfig.projectId;
+  // Check if we have a valid config
+  const hasValidConfig = firebaseConfig.apiKey &&
+                        firebaseConfig.projectId &&
+                        firebaseConfig.apiKey !== '' &&
+                        firebaseConfig.projectId !== '';
 
-  if (hasValidConfig || typeof window !== 'undefined') {
+  if (hasValidConfig) {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
     storage = getStorage(app);
+    console.log('✅ Firebase initialized successfully');
   } else {
-    console.log('⚠️ Firebase initialization skipped during build - no valid config');
-  }
-} catch (error) {
-  console.warn('⚠️ Firebase initialization failed:', error);
-  // Create mock objects for build process
-  if (typeof window === 'undefined') {
+    console.warn('⚠️ Firebase initialization skipped - missing configuration');
+    // Create placeholder objects to prevent import errors
     db = null;
     auth = null;
     storage = null;
   }
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error);
+  // Create placeholder objects to prevent import errors
+  db = null;
+  auth = null;
+  storage = null;
 }
 
 export { db, auth, storage };
