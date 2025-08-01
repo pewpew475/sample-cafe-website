@@ -19,27 +19,29 @@ const firebaseConfig = {
 const isBuilding = process.env.NODE_ENV === 'production' && typeof window === 'undefined';
 const shouldValidate = typeof window !== 'undefined' && !isBuilding;
 
-if (shouldValidate) {
-  const requiredEnvVars = [
-    'NEXT_PUBLIC_FIREBASE_API_KEY',
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'NEXT_PUBLIC_FIREBASE_APP_ID'
-  ];
+// Check for missing environment variables
+const requiredEnvVars = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  'NEXT_PUBLIC_FIREBASE_APP_ID'
+];
 
-  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const hasValidConfig = missingEnvVars.length === 0;
 
-  if (missingEnvVars.length > 0) {
-    console.error(
-      `❌ Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
-      'Please check your Vercel environment variables configuration.\n' +
-      'Visit: https://vercel.com/dashboard → Your Project → Settings → Environment Variables'
-    );
+if (shouldValidate && !hasValidConfig) {
+  console.error(
+    `❌ Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
+    'Please check your Vercel environment variables configuration.\n' +
+    'Visit: https://vercel.com/dashboard → Your Project → Settings → Environment Variables'
+  );
 
-    // Show user-friendly error instead of crashing the app
-    if (typeof window !== 'undefined') {
+  // Show user-friendly error instead of crashing the app
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
       const errorDiv = document.createElement('div');
       errorDiv.style.cssText = `
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -55,10 +57,7 @@ if (shouldValidate) {
         <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px;">Close</button>
       `;
       document.body.appendChild(errorDiv);
-    }
-
-    // Don't throw error, just return early to prevent app crash
-    return;
+    }, 1000);
   }
 } else if (isBuilding) {
   // During build, just log info about environment status
@@ -72,12 +71,7 @@ let auth: any = null;
 let storage: any = null;
 
 try {
-  // Check if we have a valid config
-  const hasValidConfig = firebaseConfig.apiKey &&
-                        firebaseConfig.projectId &&
-                        firebaseConfig.apiKey !== '' &&
-                        firebaseConfig.projectId !== '';
-
+  // Only initialize if we have valid configuration
   if (hasValidConfig) {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
