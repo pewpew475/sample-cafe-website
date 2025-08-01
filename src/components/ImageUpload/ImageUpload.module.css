@@ -1,0 +1,229 @@
+.imageUpload {
+  width: 100%;
+  max-width: 400px;
+}
+
+.uploadArea {
+  position: relative;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadArea:hover {
+  border-color: #8b5cf6;
+  background: #f8f4ff;
+}
+
+.uploadArea.dragOver {
+  border-color: #8b5cf6;
+  background: #f0e6ff;
+  transform: scale(1.02);
+}
+
+.uploadArea.uploading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.imagePreview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  max-height: 300px;
+}
+
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+}
+
+.imagePreview:hover .imageOverlay {
+  opacity: 1;
+}
+
+.removeButton,
+.changeButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.removeButton {
+  background: #ef4444;
+  color: white;
+}
+
+.removeButton:hover {
+  background: #dc2626;
+}
+
+.changeButton {
+  background: #8b5cf6;
+  color: white;
+}
+
+.changeButton:hover {
+  background: #7c3aed;
+}
+
+.removeButton:disabled,
+.changeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.uploadIcon {
+  font-size: 3rem;
+  opacity: 0.6;
+}
+
+.uploadText {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+}
+
+.uploadHint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.uploadProgress {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progressText {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0;
+  text-align: center;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.errorIcon {
+  font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .uploadArea {
+    padding: 1.5rem;
+    min-height: 150px;
+  }
+
+  .uploadIcon {
+    font-size: 2.5rem;
+  }
+
+  .uploadText {
+    font-size: 1rem;
+  }
+
+  .uploadHint {
+    font-size: 0.8rem;
+  }
+
+  .removeButton,
+  .changeButton {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .uploadArea {
+    padding: 1rem;
+    min-height: 120px;
+  }
+
+  .uploadIcon {
+    font-size: 2rem;
+  }
+
+  .imageOverlay {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .removeButton,
+  .changeButton {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}

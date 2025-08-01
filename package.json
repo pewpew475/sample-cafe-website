@@ -1,0 +1,52 @@
+{
+  "name": "sample-cafe-website",
+  "version": "1.0.0",
+  "description": "A modern, responsive cafe website with Firebase integration and admin dashboard",
+  "private": true,
+  "keywords": [
+    "nextjs",
+    "react",
+    "typescript",
+    "firebase",
+    "restaurant",
+    "cafe",
+    "ecommerce"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "setup": "cp .env.example .env.local && echo 'Environment file created! Please update .env.local with your Firebase configuration.'",
+    "clean": "rm -rf .next out",
+    "export": "next build && next export",
+    "generate-keys": "node generate-keys.js",
+    "deploy": "chmod +x scripts/deploy.sh && ./scripts/deploy.sh",
+    "deploy:vercel": "vercel --prod",
+    "deploy:firebase": "firebase deploy --only firestore:rules,storage:rules",
+    "build:analyze": "ANALYZE=true npm run build",
+    "setup:firebase": "chmod +x scripts/setup-firebase.sh && ./scripts/setup-firebase.sh",
+    "setup:storage": "chmod +x scripts/setup-storage.sh && ./scripts/setup-storage.sh"
+  },
+  "dependencies": {
+    "@vercel/blob": "^1.1.1",
+    "firebase": "^12.0.0",
+    "gl-matrix": "^3.4.3",
+    "next": "15.4.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.4",
+    "typescript": "^5"
+  }
+}
