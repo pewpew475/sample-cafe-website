@@ -259,16 +259,37 @@ Uses modern CSS techniques:
 
 2. **Set Environment Variables**
    - Go to your Vercel dashboard
-   - Navigate to your project settings
-   - Add all environment variables from `.env.local`
-   - **Important**: Add `BLOB_READ_WRITE_TOKEN` for image uploads in production
+   - Navigate to your project settings → Environment Variables
+   - Add all environment variables from `.env.local`:
+     ```
+     NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+     NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+     NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+     NEXT_PUBLIC_APP_NAME=Your Cafe Name
+     NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+     NEXT_PUBLIC_ENABLE_ADMIN_SETUP=true
+     BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+     JWT_SECRET=your_jwt_secret
+     ENCRYPTION_KEY=your_encryption_key
+     NODE_ENV=production
+     ```
+   - **Important**: Set environment for "Production", "Preview", and "Development" as needed
 
 3. **Deploy**
    ```bash
    vercel --prod
    ```
 
-4. **Post-Deployment Setup**
+4. **Set up Vercel Blob Storage (for image uploads)**
+   - Go to your Vercel dashboard → Storage tab
+   - Create a new Blob store or use existing one
+   - Copy the `BLOB_READ_WRITE_TOKEN` from the store settings
+   - Add it to your environment variables
+
+5. **Post-Deployment Setup**
    - Visit your deployed site's `/admin` page
    - Complete the admin setup if it's your first deployment
    - Test image uploads and Firebase connectivity
@@ -282,6 +303,25 @@ The project can be deployed to any platform that supports Next.js:
 - **Heroku**: Traditional PaaS deployment (requires buildpack)
 
 **Note**: For platforms other than Vercel, you may need to configure image storage differently as Vercel Blob is Vercel-specific.
+
+### 📋 Deployment Checklist
+
+Before deploying, ensure you have:
+
+- [ ] **Firebase Project** set up with Firestore and Authentication enabled
+- [ ] **Environment Variables** configured in Vercel dashboard
+- [ ] **Vercel Blob Storage** created and token added to environment variables
+- [ ] **Security Keys** generated using `npm run generate-keys`
+- [ ] **Firebase Security Rules** configured (see Firebase setup section)
+- [ ] **Domain** configured (if using custom domain)
+
+After deployment:
+
+- [ ] **Admin Setup** completed at `/admin` page
+- [ ] **Image Upload** tested and working
+- [ ] **Firebase Connection** verified
+- [ ] **SSL Certificate** active (automatic with Vercel)
+- [ ] **Performance** tested with Lighthouse or similar tools
 
 ## 📚 API Reference
 
