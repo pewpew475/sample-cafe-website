@@ -27,6 +27,9 @@ function Admin() {
   useEffect(() => {
     const checkAuthAndSetup = async () => {
       try {
+        // Check if admin setup is enabled in environment
+        const adminSetupEnabled = process.env.NEXT_PUBLIC_ENABLE_ADMIN_SETUP === 'true';
+
         // Check if Firebase is properly configured and user is authenticated
         const firebaseAuth = authService.isAuthenticated();
         const firebaseUser = authService.getCurrentAdminUser();
@@ -40,23 +43,32 @@ function Admin() {
           setAuthenticated(false);
           setCurrentUser(null);
 
-          // Check if we need to show setup (when no admin has ever been created)
-          try {
-            const adminExists = await authService.checkAdminExists();
-            setNeedsSetup(!adminExists);
+          // Only allow setup if environment variable allows it
+          if (adminSetupEnabled) {
+            // Check if we need to show setup (when no admin has ever been created)
+            try {
+              const adminExists = await authService.checkAdminExists();
+              setNeedsSetup(!adminExists);
+              setFirebaseError(false);
+            } catch (error) {
+              // If Firebase check fails, check if setup was already completed
+              console.warn('Firebase check failed:', error);
+              const setupCompleted = localStorage.getItem('admin_setup_completed') === 'true';
+              setNeedsSetup(!setupCompleted);
+              setFirebaseError(!setupCompleted); // Only show Firebase error if setup wasn't completed
+            }
+          } else {
+            // Admin setup is disabled in production - only show login
+            setNeedsSetup(false);
             setFirebaseError(false);
-          } catch (error) {
-            // If Firebase check fails, check if setup was already completed
-            console.warn('Firebase check failed:', error);
-            const setupCompleted = localStorage.getItem('admin_setup_completed') === 'true';
-            setNeedsSetup(!setupCompleted);
-            setFirebaseError(!setupCompleted); // Only show Firebase error if setup wasn't completed
           }
         }
       } catch (error) {
         console.warn('Auth check failed:', error);
         setFirebaseError(true);
-        setNeedsSetup(true);
+        // Only allow setup if environment variable allows it
+        const adminSetupEnabled = process.env.NEXT_PUBLIC_ENABLE_ADMIN_SETUP === 'true';
+        setNeedsSetup(adminSetupEnabled);
         setAuthenticated(false);
         setCurrentUser(null);
       } finally {
@@ -104,8 +116,9 @@ function Admin() {
     );
   }
 
-  // Show setup form ONLY if no admin has ever been created
-  if (needsSetup && !localStorage.getItem('admin_setup_completed')) {
+  // Show setup form ONLY if no admin has ever been created AND setup is enabled
+  const adminSetupEnabled = process.env.NEXT_PUBLIC_ENABLE_ADMIN_SETUP === 'true';
+  if (needsSetup && !localStorage.getItem('admin_setup_completed') && adminSetupEnabled) {
     return (
       <div className="admin-container">
         <div className="admin-setup-container">
@@ -123,6 +136,27 @@ function Admin() {
 
   // Show login form if not authenticated
   if (!authenticated) {
+    // If setup is needed but disabled, show an error message
+    if (needsSetup && !adminSetupEnabled) {
+      return (
+        <div className="admin-container">
+          <div className="admin-error">
+            <h2>⚠️ Admin Setup Required</h2>
+            <p>No admin account has been created yet, but admin setup is disabled in production.</p>
+            <p>To resolve this issue:</p>
+            <ol>
+              <li>Set <code>NEXT_PUBLIC_ENABLE_ADMIN_SETUP=true</code> in your Vercel environment variables</li>
+              <li>Redeploy your application</li>
+              <li>Visit this page to create your admin account</li>
+              <li>Set <code>NEXT_PUBLIC_ENABLE_ADMIN_SETUP=false</code> after setup is complete</li>
+              <li>Redeploy again to secure your application</li>
+            </ol>
+            <p><strong>Contact your developer if you need assistance.</strong></p>
+          </div>
+        </div>
+      );
+    }
+
     return <LoginForm setAuthenticated={setAuthenticated} setCurrentUser={setCurrentUser} />;
   }
 

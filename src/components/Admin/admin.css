@@ -1945,6 +1945,59 @@
   }
 }
 
+/* Error State */
+.admin-error {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  background: var(--admin-white);
+  border-radius: 12px;
+  box-shadow: var(--admin-card-shadow);
+  border-left: 5px solid var(--admin-warning);
+}
+
+.admin-error h2 {
+  color: var(--admin-warning);
+  margin-bottom: 1rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.admin-error p {
+  color: var(--admin-gray);
+  margin-bottom: 1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  line-height: 1.6;
+}
+
+.admin-error ol {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.admin-error li {
+  color: var(--admin-gray-dark);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.admin-error code {
+  background: var(--admin-gray-light);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--admin-secondary);
+}
+
+@media (max-width: 768px) {
+  .admin-error {
+    padding: 1rem;
+    margin: 1rem;
+  }
+}
+
 /* Order History Styles */
 .history-header {
   display: flex;
