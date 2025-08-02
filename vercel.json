@@ -81,13 +81,7 @@
       "destination": "/api/$1"
     }
   ],
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/admin/",
-      "permanent": true
-    }
-  ],
+
   "regions": ["iad1"],
   "github": {
     "silent": true
