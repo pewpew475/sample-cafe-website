@@ -39,15 +39,21 @@ class AuthService {
   private adminUser: AdminUser | null = null;
 
   constructor() {
-    // Listen for auth state changes
-    onAuthStateChanged(auth, async (user) => {
-      this.currentUser = user;
-      if (user) {
-        await this.loadAdminProfile(user.uid);
-      } else {
-        this.adminUser = null;
+    // Only listen for auth state changes if auth is available
+    if (auth) {
+      try {
+        onAuthStateChanged(auth, async (user) => {
+          this.currentUser = user;
+          if (user) {
+            await this.loadAdminProfile(user.uid);
+          } else {
+            this.adminUser = null;
+          }
+        });
+      } catch (error) {
+        console.warn('Firebase auth state listener failed:', error);
       }
-    });
+    }
   }
 
   // Get current authenticated user
@@ -83,6 +89,11 @@ class AuthService {
 
   // Load admin profile from Firestore
   private async loadAdminProfile(uid: string): Promise<void> {
+    if (!db) {
+      console.warn('Firestore not available - skipping admin profile load');
+      return;
+    }
+
     try {
       const adminDoc = await getDoc(doc(db, 'admins', uid));
       if (adminDoc.exists()) {
@@ -103,6 +114,10 @@ class AuthService {
 
   // Sign in admin user
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!auth || !db) {
+      return { success: false, error: 'Firebase services not available. Please check configuration.' };
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -122,7 +137,7 @@ class AuthService {
       return { success: true };
     } catch (error: any) {
       let errorMessage = 'Login failed';
-      
+
       switch (error.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
@@ -144,10 +159,14 @@ class AuthService {
 
   // Create admin user (for initial setup)
   async createAdmin(credentials: AdminCredentials): Promise<{ success: boolean; error?: string }> {
+    if (!auth || !db) {
+      return { success: false, error: 'Firebase services not available. Please check configuration.' };
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        credentials.email, 
+        auth,
+        credentials.email,
         credentials.password
       );
       const user = userCredential.user;
@@ -194,6 +213,10 @@ class AuthService {
     newPassword?: string,
     newUsername?: string
   ): Promise<{ success: boolean; error?: string }> {
+    if (!auth || !db) {
+      return { success: false, error: 'Firebase services not available. Please check configuration.' };
+    }
+
     try {
       if (!this.currentUser) {
         return { success: false, error: 'Not authenticated' };
@@ -248,6 +271,11 @@ class AuthService {
 
   // Sign out
   async signOut(): Promise<void> {
+    if (!auth) {
+      console.warn('Firebase auth not available for sign out');
+      return;
+    }
+
     try {
       await signOut(auth);
     } catch (error) {
@@ -262,6 +290,11 @@ class AuthService {
       const adminCreated = localStorage.getItem('admin_setup_completed');
       if (adminCreated === 'true') {
         return true;
+      }
+
+      // If Firebase is not available, return false to show setup
+      if (!db) {
+        return false;
       }
 
       // Try to query Firebase for any admin users

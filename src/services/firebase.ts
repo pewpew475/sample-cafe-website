@@ -30,6 +30,11 @@ const COLLECTIONS = {
 export const productService = {
   // Get all products
   getAll: async (): Promise<Product[]> => {
+    if (!db) {
+      console.warn('Firestore not available - returning empty products list');
+      return [];
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
       return querySnapshot.docs.map(doc => ({
@@ -46,6 +51,11 @@ export const productService = {
 
   // Get product by ID
   getById: async (id: string): Promise<Product | null> => {
+    if (!db) {
+      console.warn('Firestore not available - cannot get product');
+      return null;
+    }
+
     try {
       const docRef = doc(db, COLLECTIONS.PRODUCTS, id);
       const docSnap = await getDoc(docRef);
@@ -67,6 +77,10 @@ export const productService = {
 
   // Add new product
   add: async (product: Omit<Product, 'id'>): Promise<string> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot add product');
+    }
+
     try {
       const docRef = await addDoc(collection(db, COLLECTIONS.PRODUCTS), {
         ...product,
@@ -82,6 +96,10 @@ export const productService = {
 
   // Update product
   update: async (id: string, updates: Partial<Product>): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot update product');
+    }
+
     try {
       const docRef = doc(db, COLLECTIONS.PRODUCTS, id);
       await updateDoc(docRef, {
@@ -96,6 +114,10 @@ export const productService = {
 
   // Delete product
   delete: async (id: string): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot delete product');
+    }
+
     try {
       await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, id));
     } catch (error) {
@@ -109,6 +131,11 @@ export const productService = {
 export const orderService = {
   // Get all orders
   getAll: async (): Promise<Order[]> => {
+    if (!db) {
+      console.warn('Firestore not available - returning empty orders list');
+      return [];
+    }
+
     try {
       const q = query(
         collection(db, COLLECTIONS.ORDERS),
@@ -129,6 +156,11 @@ export const orderService = {
 
   // Get orders by status
   getByStatus: async (status: string): Promise<Order[]> => {
+    if (!db) {
+      console.warn('Firestore not available - returning empty orders list');
+      return [];
+    }
+
     try {
       const q = query(
         collection(db, COLLECTIONS.ORDERS),
@@ -150,6 +182,10 @@ export const orderService = {
 
   // Add new order
   add: async (order: Omit<Order, 'id'>): Promise<string> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot add order');
+    }
+
     try {
       // Get next order number
       const orderNumber = await getNextOrderNumber();
@@ -169,6 +205,10 @@ export const orderService = {
 
   // Update order
   update: async (id: string, updates: Partial<Order>): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot update order');
+    }
+
     try {
       const docRef = doc(db, COLLECTIONS.ORDERS, id);
       await updateDoc(docRef, {
@@ -183,6 +223,10 @@ export const orderService = {
 
   // Delete order
   delete: async (id: string): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot delete order');
+    }
+
     try {
       await deleteDoc(doc(db, COLLECTIONS.ORDERS, id));
     } catch (error) {
@@ -196,6 +240,11 @@ export const orderService = {
 export const categoryService = {
   // Get all categories
   getAll: async (): Promise<Category[]> => {
+    if (!db) {
+      console.warn('Firestore not available - returning empty categories list');
+      return [];
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, COLLECTIONS.CATEGORIES));
       return querySnapshot.docs.map(doc => ({
@@ -211,6 +260,10 @@ export const categoryService = {
 
   // Add new category
   add: async (category: Omit<Category, 'id'>): Promise<string> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot add category');
+    }
+
     try {
       const docRef = await addDoc(collection(db, COLLECTIONS.CATEGORIES), {
         ...category,
@@ -225,6 +278,10 @@ export const categoryService = {
 
   // Delete category
   delete: async (id: string): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot delete category');
+    }
+
     try {
       await deleteDoc(doc(db, COLLECTIONS.CATEGORIES, id));
     } catch (error) {
@@ -238,6 +295,11 @@ export const categoryService = {
 export const settingsService = {
   // Get settings
   get: async (): Promise<RestaurantSettings | null> => {
+    if (!db) {
+      console.warn('Firestore not available - returning null settings');
+      return null;
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, COLLECTIONS.SETTINGS));
       if (!querySnapshot.empty) {
@@ -253,6 +315,10 @@ export const settingsService = {
 
   // Update settings
   update: async (settings: RestaurantSettings): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot update settings');
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, COLLECTIONS.SETTINGS));
       
@@ -273,14 +339,19 @@ export const settingsService = {
 
 // Order number counter
 const getNextOrderNumber = async (): Promise<number> => {
+  if (!db) {
+    // Fallback to timestamp-based number when Firestore is not available
+    return Date.now() % 100000; // Use last 5 digits of timestamp
+  }
+
   try {
     const counterRef = doc(db, COLLECTIONS.ORDER_COUNTER, 'orderNumber');
     const counterDoc = await getDoc(counterRef);
-    
+
     if (counterDoc.exists()) {
       const currentNumber = counterDoc.data().value || 0;
       const nextNumber = currentNumber + 1;
-      
+
       // Update counter
       await updateDoc(counterRef, { value: nextNumber });
       return nextNumber;
@@ -305,15 +376,19 @@ export const batchService = {
     categories: Category[];
     settings: RestaurantSettings;
   }): Promise<void> => {
+    if (!db) {
+      throw new Error('Firestore not available - cannot sync data');
+    }
+
     try {
-      const batch = writeBatch(db);
+      const batch = writeBatch(db!);
 
       // Clear existing data and add new data
       // Note: In production, you might want to be more selective about what to sync
 
       // Add products
       data.products.forEach(product => {
-        const productRef = doc(collection(db, COLLECTIONS.PRODUCTS));
+        const productRef = doc(collection(db!, COLLECTIONS.PRODUCTS));
         batch.set(productRef, {
           ...product,
           createdAt: Timestamp.fromDate(product.createdAt),
@@ -323,7 +398,7 @@ export const batchService = {
 
       // Add orders
       data.orders.forEach(order => {
-        const orderRef = doc(collection(db, COLLECTIONS.ORDERS));
+        const orderRef = doc(collection(db!, COLLECTIONS.ORDERS));
         batch.set(orderRef, {
           ...order,
           createdAt: Timestamp.fromDate(order.createdAt),
@@ -333,7 +408,7 @@ export const batchService = {
 
       // Add categories
       data.categories.forEach(category => {
-        const categoryRef = doc(collection(db, COLLECTIONS.CATEGORIES));
+        const categoryRef = doc(collection(db!, COLLECTIONS.CATEGORIES));
         batch.set(categoryRef, {
           ...category,
           createdAt: Timestamp.fromDate(category.createdAt)
