@@ -126,12 +126,16 @@ function Products() {
                       src={product.image}
                       alt={product.name}
                       className="product-image-content"
+                      onError={(e) => {
+                        console.error('Image failed to load:', product.image);
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
                     />
-                  ) : (
-                    <div className="placeholder-image">
-                      <span>🍽️</span>
-                    </div>
-                  )}
+                  ) : null}
+                  <div className={`placeholder-image ${product.image ? 'hidden' : ''}`}>
+                    <span>🍽️</span>
+                  </div>
                 </div>
                 <div className="product-info">
                   <h3 className="product-name">{product.name}</h3>

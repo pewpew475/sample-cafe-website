@@ -212,6 +212,10 @@
   transform: scale(1.05);
 }
 
+.placeholder-image.hidden {
+  display: none;
+}
+
 .placeholder-image {
   display: flex;
   flex-direction: column;

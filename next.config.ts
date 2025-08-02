@@ -24,8 +24,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.public.blob.vercel-storage.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.blob.vercel-storage.com',
+        pathname: '/**',
       }
     ],
+    // Temporarily disable optimization to test if that's the issue
     unoptimized: false,
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

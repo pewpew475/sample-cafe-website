@@ -65,6 +65,8 @@ function ProductManagement() {
           ...formData,
           image: uploadedImageUrl || formData.image // Use uploaded URL or fallback to file
         };
+        console.log('Saving new product with data:', productData);
+        console.log('Image URL being saved:', productData.image);
         await addProduct(productData);
       }
 
@@ -225,6 +227,8 @@ function ProductManagement() {
                 id={editingProduct?.id || 'new'}
                 currentImage={uploadedImageUrl || editingProduct?.image}
                 onUploadSuccess={(result: UploadResult) => {
+                  console.log('Image upload successful:', result);
+                  console.log('Image URL:', result.url);
                   setUploadedImageUrl(result.url);
                   setFormData({
                     ...formData,
@@ -287,6 +291,13 @@ function ProductManagement() {
                         height={200}
                         className="product-image"
                         style={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                          console.error('Admin image failed to load:', product.image);
+                          console.error('Error details:', e);
+                        }}
+                        onLoad={() => {
+                          console.log('Admin image loaded successfully:', product.image);
+                        }}
                       />
                     ) : (
                       <div className="product-placeholder">
