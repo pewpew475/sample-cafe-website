@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { put, del } from '@vercel/blob';
 import { imageStorage } from '@/services/imageStorage';
 
 export async function POST(request: NextRequest) {
@@ -49,37 +48,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if Vercel Blob token is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: 'Vercel Blob Storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.' },
+        { status: 500 }
+      );
+    }
+
     // Generate unique filename
     const filename = imageStorage.generateFilename(file.name);
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Ensure uploads directory exists
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
     try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist, that's fine
+      // Upload to Vercel Blob Storage
+      const blob = await put(filename, file, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+
+      // Create result object
+      const result = {
+        url: blob.url,
+        filename: filename,
+        size: file.size,
+        uploadedAt: new Date()
+      };
+
+      return NextResponse.json({
+        success: true,
+        data: result
+      });
+
+    } catch (blobError) {
+      console.error('Vercel Blob upload error:', blobError);
+      return NextResponse.json(
+        { error: 'Failed to upload to Vercel Blob Storage' },
+        { status: 500 }
+      );
     }
-
-    // Write file to uploads directory
-    const filePath = join(uploadsDir, filename);
-    await writeFile(filePath, buffer);
-
-    // Create result object
-    const result = {
-      url: imageStorage.getImageUrl(filename),
-      filename: filename,
-      size: file.size,
-      uploadedAt: new Date()
-    };
-
-    return NextResponse.json({
-      success: true,
-      data: result
-    });
 
   } catch (error) {
     console.error('Upload error:', error);
@@ -102,23 +108,31 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const filename = searchParams.get('filename');
+    const url = searchParams.get('url');
 
-    if (!filename) {
+    if (!url) {
       return NextResponse.json(
-        { error: 'Image filename required' },
+        { error: 'Image URL required' },
         { status: 400 }
       );
     }
 
-    // Delete file from uploads directory
-    const filePath = join(process.cwd(), 'public', 'uploads', filename);
+    // Check if Vercel Blob token is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: 'Vercel Blob Storage not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Delete file from Vercel Blob Storage
     try {
-      const fs = await import('fs/promises');
-      await fs.unlink(filePath);
+      await del(url, {
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
     } catch (error) {
-      // File might not exist, that's fine
-      console.log('File not found or already deleted:', filename);
+      console.log('File not found or already deleted:', url);
+      // Continue anyway - file might not exist
     }
 
     return NextResponse.json({
